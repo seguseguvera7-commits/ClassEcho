@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClassEcho | Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  
+  <style>
+    /* Dashboard-specific animations */
+    @keyframes cardEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .stat-card, .chart-card {
+      animation: cardEntrance 0.6s ease-out forwards;
+      opacity: 0;
+    }
+    
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    
+    .chart-card:nth-child(1) { animation-delay: 0.4s; }
+    .chart-card:nth-child(2) { animation-delay: 0.5s; }
+    
+    .table-section {
+      animation: cardEntrance 0.6s ease-out 0.6s forwards;
+      opacity: 0;
+    }
+    
+    /* Navbar enhancements */
+    .navbar {
+      background: rgba(22, 27, 34, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+      border-radius: 0 0 20px 20px;
+    }
+    
+    .navbar h1 {
+      color: #e5e7eb;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <img src="images/logo.png" alt="ClassEcho Logo" style="height: 40px;"/>
+      <h1>ClassEcho Dashboard</h1>
+    </div>
+    <button id="logoutBtn" class="btn-logout">Logout</button>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="container">
+
+    <!-- Stats -->
+    <section class="stats-section">
+      <div class="stat-card">
+        <h3>Total Feedback</h3>
+        <p id="totalFeedback">0</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>Average Rating</h3>
+        <p id="avgRating">0</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>Positive Sentiment</h3>
+        <p id="positiveSent">0%</p>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-section">
+      <div class="chart-card">
+        <h3>Rating Chart</h3>
+        <canvas id="ratingChart"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <h3>Sentiment Distribution</h3>
+        <canvas id="sentChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Feedback Table -->
+    <section class="table-section">
+      <h2>All Feedback</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Rating</th>
+            <th>Subject</th>
+            <th>Feedback</th>
+            <th>Class & Section</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="feedbackTable"></tbody>
+      </table>
+    </section>
+
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <script src="firebase.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script>
+    // Check if user is authenticated
+    document.addEventListener('DOMContentLoaded', function() {
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          // If not authenticated, redirect to login
+          window.location.href = 'login.html';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

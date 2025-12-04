@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnose Feedback Issues</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .log {
+      background: #000;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      height: 400px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .error {
+      color: #f44336;
+    }
+    .success {
+      color: #4CAF50;
+    }
+    .warning {
+      color: #ff9800;
+    }
+    .info {
+      color: #2196F3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Feedback Diagnosis Tool</h1>
+    <p>This tool will help diagnose issues with feedback not showing in the teacher dashboard.</p>
+    
+    <div class="log" id="log"></div>
+    
+    <button onclick="runFullDiagnosis()">Run Full Diagnosis</button>
+    <button onclick="testDatabaseConnection()">Test Database Connection</button>
+    <button onclick="checkFeedbackCollection()">Check Feedback Collection</button>
+    <button onclick="clearLog()">Clear Log</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    const logElement = document.getElementById('log');
+    
+    function log(message, type = '') {
+      const timestamp = new Date().toISOString();
+      const entry = document.createElement('div');
+      entry.textContent = `[${timestamp}] ${message}`;
+      entry.className = type;
+      logElement.appendChild(entry);
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+    
+    function clearLog() {
+      logElement.innerHTML = '';
+    }
+    
+    async function testDatabaseConnection() {
+      log('Testing Firebase database connection...', 'info');
+      
+      try {
+        if (typeof db === 'undefined') {
+          log('ERROR: Firestore not initialized', 'error');
+          return false;
+        }
+        
+        log('Firestore is initialized', 'success');
+        
+        // Try to access the feedbacks collection
+        const testSnapshot = await db.collection('feedbacks').limit(1).get();
+        log(`Successfully connected to feedbacks collection. Found ${testSnapshot.size} documents.`, 'success');
+        return true;
+      } catch (error) {
+        log(`ERROR: Failed to connect to database - ${error.message}`, 'error');
+        if (error.code) {
+          log(`Error code: ${error.code}`, 'error');
+        }
+        return false;
+      }
+    }
+    
+    async function checkFeedbackCollection() {
+      log('Checking feedback collection contents...', 'info');
+      
+      try {
+        if (typeof db === 'undefined') {
+          log('ERROR: Firestore not initialized', 'error');
+          return;
+        }
+        
+        // Get all feedback documents
+        log('Fetching all feedback documents...', 'info');
+        const snapshot = await db.collection('feedbacks').orderBy('createdAt', 'desc').get();
+        log(`Found ${snapshot.size} feedback documents in collection`, 'success');
+        
+        if (snapshot.empty) {
+          log('No feedback documents found. This explains why nothing is showing in the dashboard.', 'warning');
+          log('Try submitting some feedback first, then check again.', 'info');
+          return;
+        }
+        
+        // Show details of first 5 documents
+        let count = 0;
+        snapshot.forEach(doc => {
+          if (count >= 5) return;
+          count++;
+          
+          const data = doc.data();
+          log(`--- Document ${count} ---`, 'info');
+          log(`ID: ${doc.id}`, 'info');
+          log(`Class: ${data.className || 'N/A'}`, 'info');
+          log(`Section: ${data.section || 'N/A'}`, 'info');
+          log(`Subject: ${data.subject || 'N/A'}`, 'info');
+          log(`Rating: ${data.rating || 'N/A'}`, 'info');
+          log(`Comments: ${data.comments || 'N/A'}`, 'info');
+          log(`Sentiment: ${data.sentimentEmoji || 'N/A'}`, 'info');
+          if (data.createdAt) {
+            log(`Created: ${data.createdAt.toDate().toString()}`, 'info');
+          } else {
+            log('Created: N/A', 'warning');
+          }
+        });
+        
+        if (snapshot.size > 5) {
+          log(`... and ${snapshot.size - 5} more documents`, 'info');
+        }
+      } catch (error) {
+        log(`ERROR: Failed to read feedback collection - ${error.message}`, 'error');
+        if (error.code) {
+          log(`Error code: ${error.code}`, 'error');
+        }
+      }
+    }
+    
+    async function runFullDiagnosis() {
+      clearLog();
+      log('Starting full diagnosis...', 'info');
+      
+      // Test database connection
+      const isConnected = await testDatabaseConnection();
+      if (!isConnected) {
+        log('Cannot proceed with diagnosis due to database connection failure', 'error');
+        return;
+      }
+      
+      // Check feedback collection
+      await checkFeedbackCollection();
+      
+      log('Diagnosis complete', 'info');
+    }
+    
+    // Run initial check
+    document.addEventListener('DOMContentLoaded', function() {
+      log('Feedback Diagnosis Tool Loaded', 'info');
+      log('Click "Run Full Diagnosis" to start', 'info');
+    });
+  </script>
+</body>
+</html>

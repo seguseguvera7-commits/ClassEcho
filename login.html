@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ClassEcho | Teacher Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <style>
+    /* Add specific animations for the login page */
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    .login-box {
+      max-width: 420px;
+    }
+  </style>
+</head>
+<body class="login-body">
+  <div class="login-box">
+    <div class="brand">
+      <img src="images/logo.png" alt="ClassEcho Logo" style="height: 50px; margin-bottom: 10px; animation: zoomIn 0.5s ease-out;"/>
+      <div class="logo-sm">ClassEcho</div>
+      <p class="brand-sub">Teacher / Admin access</p>
+    </div>
+
+    <h2 style="animation: fadeIn 0.8s ease-out 0.3s both;">Teacher Sign In</h2>
+    <p class="subtext" style="animation: fadeIn 0.8s ease-out 0.4s both;">Access analytics and AI insights</p>
+
+    <form id="loginForm" class="login-form">
+      <input id="email" type="email" placeholder="Email address" required style="animation: fadeIn 0.8s ease-out 0.5s both;" />
+      <input id="password" type="password" placeholder="Password" required style="animation: fadeIn 0.8s ease-out 0.6s both;" />
+      <button type="submit" class="btn-primary" style="animation: fadeIn 0.8s ease-out 0.7s both;">Sign In</button>
+    </form>
+
+    <div class="or-line" style="animation: fadeIn 0.8s ease-out 0.8s both;">or</div>
+
+    <div class="login-actions">
+      <button id="googleBtn" class="btn-ghost" style="animation: fadeIn 0.8s ease-out 0.9s both;">Sign in with Google</button>
+    </div>
+
+    <p class="foot-note" style="animation: fadeIn 0.8s ease-out 1.1s both;">Forgot password? Contact your admin.</p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <script src="firebase.js"></script>
+  <script src="js/app.js"></script>
+  
+  <script>
+    // 🔥 Firebase Auth Logic
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Firebase (if not already done in firebase.js)
+      if (typeof firebase === 'undefined') {
+        const firebaseConfig = {
+          apiKey: "AIzaSyBjaRB7dt7EVdd3rBNOgCwt3jwSR2QXZ3g",
+          authDomain: "classecho-c4e3c.firebaseapp.com",
+          projectId: "classecho-c4e3c",
+          storageBucket: "classecho-c4e3c.firebasestorage.app",
+          messagingSenderId: "342489428634",
+          appId: "1:342489428634:web:6f0ec87d8005f1e9ae6523",
+          measurementId: "G-3YV9W4RR43"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+      }
+      
+      const auth = firebase.auth();
+      const googleProvider = new firebase.auth.GoogleAuthProvider();
+      
+      // 📌 Email + Password Login
+      document.getElementById("loginForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        
+        const email = document.getElementById("email").value;
+        const pass = document.getElementById("password").value;
+        
+        auth.signInWithEmailAndPassword(email, pass)
+          .then((userCredential) => {
+            // Show success message
+            showMessage("Login Successful!", "success");
+            // Redirect to teacher dashboard
+            setTimeout(() => {
+              window.location.href = "teacher-dashboard.html";
+            }, 1500);
+          })
+          .catch(err => {
+            showMessage(err.message, "error");
+          });
+      });
+      
+      // 📌 Google Sign-In
+      document.getElementById("googleBtn").addEventListener("click", function () {
+        auth.signInWithPopup(googleProvider)
+          .then((result) => {
+            showMessage("Google Login Successful!", "success");
+            setTimeout(() => {
+              window.location.href = "teacher-dashboard.html";
+            }, 1500);
+          })
+          .catch(err => {
+            showMessage(err.message, "error");
+          });
+      });
+      
+      // Add input focus effects
+      const inputs = document.querySelectorAll('.login-form input');
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.parentElement.classList.add('focused');
+        });
+        input.addEventListener('blur', function() {
+          this.parentElement.classList.remove('focused');
+        });
+      });
+      
+      // Show message function
+      function showMessage(message, type) {
+        // Remove any existing message
+        const existingMsg = document.querySelector('.login-message');
+        if (existingMsg) existingMsg.remove();
+        
+        // Create message element
+        const msgElement = document.createElement('div');
+        msgElement.className = `login-message ${type}`;
+        msgElement.textContent = message;
+        msgElement.style.cssText = `
+          padding: 12px;
+          margin: 15px 0;
+          border-radius: 8px;
+          text-align: center;
+          font-weight: 500;
+          animation: fadeIn 0.3s ease-out;
+          ${type === 'success' ? 
+            'background: rgba(109, 93, 252, 0.2); border: 1px solid rgba(109, 93, 252, 0.3); color: #6d5dfc;' : 
+            'background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444;'
+          }
+        `;
+        
+        // Insert message after the form
+        document.querySelector('.login-form').after(msgElement);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+          if (msgElement.parentNode) {
+            msgElement.remove();
+          }
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>

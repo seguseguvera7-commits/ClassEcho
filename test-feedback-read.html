@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Feedback Read</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .log {
+      background: #000;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .error {
+      color: #f44336;
+    }
+    .success {
+      color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Test Feedback Read</h1>
+    <div class="log" id="log"></div>
+    <button onclick="testRead()">Test Read Feedback</button>
+    <button onclick="clearLog()">Clear Log</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    const logElement = document.getElementById('log');
+    
+    function log(message, type = '') {
+      const timestamp = new Date().toISOString();
+      const entry = document.createElement('div');
+      entry.textContent = `[${timestamp}] ${message}`;
+      entry.className = type;
+      logElement.appendChild(entry);
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+    
+    function clearLog() {
+      logElement.innerHTML = '';
+    }
+    
+    async function testRead() {
+      log('Testing read operation...');
+      
+      try {
+        if (typeof db === 'undefined') {
+          log('Database not initialized', 'error');
+          return;
+        }
+        
+        log('Reading feedback documents...');
+        const snapshot = await db.collection('feedbacks').limit(10).get();
+        log('Found ' + snapshot.size + ' feedback documents', 'success');
+        
+        snapshot.forEach(doc => {
+          log('Document ID: ' + doc.id + ', Data: ' + JSON.stringify(doc.data()));
+        });
+        
+        if (snapshot.empty) {
+          log('No feedback documents found in the collection');
+        }
+      } catch (error) {
+        log('Read test failed: ' + error.message, 'error');
+        if (error.code) {
+          log('Error code: ' + error.code, 'error');
+        }
+      }
+    }
+    
+    // Run connection test on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      log('Page loaded. Click "Test Read Feedback" to begin.');
+    });
+  </script>
+</body>
+</html>

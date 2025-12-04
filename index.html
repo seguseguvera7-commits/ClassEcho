@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ClassEcho | Share Feedback, Shape Classes</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <style>
+    /* Add specific animations for the hero logo */
+    @keyframes floatAndGlow {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        filter: drop-shadow(0 0 5px rgba(109, 93, 252, 0.5));
+      }
+      50% {
+        transform: translateY(-10px) rotate(2deg);
+        filter: drop-shadow(0 5px 15px rgba(109, 93, 252, 0.8));
+      }
+      100% {
+        transform: translateY(0) rotate(0deg);
+        filter: drop-shadow(0 0 5px rgba(109, 93, 252, 0.5));
+      }
+    }
+    
+    @keyframes pulseGlow {
+      0% {
+        filter: drop-shadow(0 0 5px rgba(109, 93, 252, 0.5));
+      }
+      50% {
+        filter: drop-shadow(0 0 20px rgba(109, 93, 252, 1)) brightness(1.2);
+      }
+      100% {
+        filter: drop-shadow(0 0 5px rgba(109, 93, 252, 0.5));
+      }
+    }
+    
+    .hero-logo img {
+      animation: floatAndGlow 4s ease-in-out infinite, pulseGlow 3s ease-in-out infinite;
+      transition: all 0.3s ease;
+      border-radius: 20px;
+    }
+    
+    .hero-logo img:hover {
+      animation: pulseGlow 1.5s ease-in-out infinite;
+      transform: scale(1.05);
+    }
+    
+    /* Position AI chatbot near the logo */
+    .ai-chat-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <!-- AI Chatbot positioned near the top right, close to the logo area -->
+  <div class="ai-chat-container">
+    <div id="ai-assistant"></div>
+  </div>
+
+  <header class="header">
+    <div class="logo">
+      <img src="images/logo.png" alt="ClassEcho Logo" style="height: 40px;"/>
+      ClassEcho
+    </div>
+    <nav>
+      <a href="feedback.html">Give Feedback</a>
+      <a href="login.html">Teacher Login</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Share Feedback — Shape Better Classes</h1>
+        <p>Anonymous, fast and AI-powered feedback for continuous improvement.</p>
+        <a class="btn-primary" href="login.html">Teacher Login</a>
+      </div>
+
+        <!-- Decorative animated background elements (pure CSS + small SVG) -->
+        <div class="hero-decor" aria-hidden="true">
+          <span class="blob blob-1"></span>
+          <span class="blob blob-2"></span>
+          <span class="blob blob-3"></span>
+          <svg class="hero-spark" width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1">
+              <path d="M10 80 C 30 10, 70 10, 90 80" stroke-linecap="round" opacity="0.8"/>
+              <circle cx="20" cy="40" r="1.8" fill="rgba(255,255,255,0.06)"/>
+              <circle cx="70" cy="55" r="1.6" fill="rgba(255,255,255,0.04)"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="hero-logo">
+          <img src="images/logo.png" alt="ClassEcho Logo" style="height: 120px; object-fit: contain;"/>
+        </div>
+
+    </section>
+
+    <section class="features">
+      <div class="feature-card">
+        <h3>Anonymous</h3>
+        <p>Submit feedback without sharing your identity.</p>
+      </div>
+      <div class="feature-card">
+        <h3>AI Insights</h3>
+        <p>Gemini-powered summaries, sentiment and suggestions.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Teacher Dashboard</h3>
+        <p>Charts, trends, and exportable reports.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2025 ClassEcho — Built with ❤️ for better classes</p>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <script src="firebase.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

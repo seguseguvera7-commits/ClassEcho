@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Firebase Connection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .log {
+      background: #000;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .error {
+      color: #f44336;
+    }
+    .success {
+      color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Firebase Connection Test</h1>
+    <div class="log" id="log"></div>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="testWrite()">Test Write</button>
+    <button onclick="testRead()">Test Read</button>
+    <button onclick="clearLog()">Clear Log</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    const logElement = document.getElementById('log');
+    
+    function log(message, type = '') {
+      const timestamp = new Date().toISOString();
+      const entry = document.createElement('div');
+      entry.textContent = `[${timestamp}] ${message}`;
+      entry.className = type;
+      logElement.appendChild(entry);
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+    
+    function clearLog() {
+      logElement.innerHTML = '';
+    }
+    
+    async function testConnection() {
+      log('Testing Firebase connection...');
+      
+      try {
+        if (typeof firebase === 'undefined') {
+          log('Firebase not loaded', 'error');
+          return;
+        }
+        
+        log('Firebase app initialized: ' + (firebase.apps.length > 0), 'success');
+        
+        if (typeof db === 'undefined') {
+          log('Firestore not initialized', 'error');
+          return;
+        }
+        
+        log('Firestore initialized successfully', 'success');
+      } catch (error) {
+        log('Connection test failed: ' + error.message, 'error');
+      }
+    }
+    
+    async function testWrite() {
+      log('Testing write operation...');
+      
+      try {
+        if (typeof db === 'undefined') {
+          log('Database not initialized', 'error');
+          return;
+        }
+        
+        const testDoc = {
+          test: 'test-value',
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        log('Writing test document...');
+        const docRef = await db.collection('test-collection').add(testDoc);
+        log('Document written with ID: ' + docRef.id, 'success');
+      } catch (error) {
+        log('Write test failed: ' + error.message, 'error');
+        if (error.code) {
+          log('Error code: ' + error.code, 'error');
+        }
+      }
+    }
+    
+    async function testRead() {
+      log('Testing read operation...');
+      
+      try {
+        if (typeof db === 'undefined') {
+          log('Database not initialized', 'error');
+          return;
+        }
+        
+        log('Reading test documents...');
+        const snapshot = await db.collection('test-collection').limit(5).get();
+        log('Found ' + snapshot.size + ' documents', 'success');
+        
+        snapshot.forEach(doc => {
+          log('Document ID: ' + doc.id + ', Data: ' + JSON.stringify(doc.data()));
+        });
+      } catch (error) {
+        log('Read test failed: ' + error.message, 'error');
+        if (error.code) {
+          log('Error code: ' + error.code, 'error');
+        }
+      }
+    }
+    
+    // Run connection test on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      testConnection();
+    });
+  </script>
+</body>
+</html>

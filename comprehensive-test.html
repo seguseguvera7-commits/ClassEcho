@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprehensive Firebase Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .log {
+      background: #000;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .error {
+      color: #f44336;
+    }
+    .success {
+      color: #4CAF50;
+    }
+    .warning {
+      color: #ff9800;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin: 10px 0;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Comprehensive Firebase Test</h1>
+    
+    <div class="log" id="log"></div>
+    
+    <h2>Test Operations</h2>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="testWrite()">Test Write Feedback</button>
+    <button onclick="testRead()">Test Read Feedback</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <h2>Manual Feedback Submission</h2>
+    <form id="manualForm">
+      <input type="text" id="className" placeholder="Class Name" value="10A"><br>
+      <input type="text" id="section" placeholder="Section" value="A"><br>
+      <input type="text" id="teacher" placeholder="Teacher" value="Mr. Smith"><br>
+      <input type="text" id="subject" placeholder="Subject" value="Mathematics"><br>
+      <select id="rating">
+        <option value="1">1 - Poor</option>
+        <option value="2">2 - Fair</option>
+        <option value="3" selected>3 - Good</option>
+        <option value="4">4 - Very Good</option>
+        <option value="5">5 - Excellent</option>
+      </select><br>
+      <textarea id="comments" placeholder="Comments">This is a test feedback comment.</textarea><br>
+      <label><input type="checkbox" id="anonymous"> Anonymous</label><br>
+      <button type="button" onclick="submitManualFeedback()">Submit Manual Feedback</button>
+    </form>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    const logElement = document.getElementById('log');
+    
+    function log(message, type = '') {
+      const timestamp = new Date().toISOString();
+      const entry = document.createElement('div');
+      entry.textContent = `[${timestamp}] ${message}`;
+      entry.className = type;
+      logElement.appendChild(entry);
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+    
+    function clearLog() {
+      logElement.innerHTML = '';
+    }
+    
+    async function testConnection() {
+      log('Testing Firebase connection...');
+      
+      try {
+        if (typeof firebase === 'undefined') {
+          log('Firebase not loaded', 'error');
+          return;
+        }
+        
+        log('Firebase app initialized: ' + (firebase.apps.length > 0), 'success');
+        
+        if (typeof db === 'undefined') {
+          log('Firestore not initialized', 'error');
+          return;
+        }
+        
+        log('Firestore initialized successfully', 'success');
+      } catch (error) {
+        log('Connection test failed: ' + error.message, 'error');
+      }
+    }
+    
+    async function testWrite() {
+      log('Testing write operation...');
+      
+      try {
+        if (typeof db === 'undefined') {
+          log('Database not initialized', 'error');
+          return;
+        }
+        
+        const testDoc = {
+          className: 'Test',
+          section: 'A',
+          teacher: 'Test Teacher',
+          subject: 'Test Subject',
+          rating: 5,
+          comments: 'This is a test feedback',
+          anonymous: false,
+          sentimentEmoji: '😊',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          test: true
+        };
+        
+        log('Writing test document...');
+        const docRef = await db.collection('feedbacks').add(testDoc);
+        log('Document written with ID: ' + docRef.id, 'success');
+      } catch (error) {
+        log('Write test failed: ' + error.message, 'error');
+        if (error.code) {
+          log('Error code: ' + error.code, 'error');
+        }
+      }
+    }
+    
+    async function testRead() {
+      log('Testing read operation...');
+      
+      try {
+        if (typeof db === 'undefined') {
+          log('Database not initialized', 'error');
+          return;
+        }
+        
+        log('Reading feedback documents...');
+        const snapshot = await db.collection('feedbacks')
+          .orderBy('createdAt', 'desc')
+          .limit(10)
+          .get();
+        log('Found ' + snapshot.size + ' feedback documents', 'success');
+        
+        if (snapshot.empty) {
+          log('No feedback documents found in the collection');
+        } else {
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            log('Document ID: ' + doc.id);
+            log('  Class: ' + (data.className || 'N/A'));
+            log('  Section: ' + (data.section || 'N/A'));
+            log('  Subject: ' + (data.subject || 'N/A'));
+            log('  Rating: ' + (data.rating || 'N/A'));
+            log('  Comments: ' + (data.comments || 'N/A'));
+            log('  Timestamp: ' + (data.createdAt ? data.createdAt.toDate().toString() : 'N/A'));
+            log('---');
+          });
+        }
+      } catch (error) {
+        log('Read test failed: ' + error.message, 'error');
+        if (error.code) {
+          log('Error code: ' + error.code, 'error');
+        }
+      }
+    }
+    
+    async function submitManualFeedback() {
+      const className = document.getElementById('className').value.trim();
+      const section = document.getElementById('section').value.trim();
+      const teacher = document.getElementById('teacher').value.trim();
+      const subject = document.getElementById('subject').value.trim();
+      const rating = parseInt(document.getElementById('rating').value, 10);
+      const comments = document.getElementById('comments').value.trim();
+      const anonymous = document.getElementById('anonymous').checked;
+      
+      if (!className || !section || !teacher || !subject || !comments) {
+        log('Please fill in all required fields', 'error');
+        return;
+      }
+      
+      // Simple sentiment heuristic
+      const keywordsPos = ['good','great','excellent','love','helpful','enjoyed','clear','understand'];
+      const keywordsNeg = ['bad','boring','unclear','confusing','difficult','hate','slow','late'];
+      let score = 0;
+      const lc = comments.toLowerCase();
+      keywordsPos.forEach(k => { if (lc.includes(k)) score += 1; });
+      keywordsNeg.forEach(k => { if (lc.includes(k)) score -= 1; });
+      
+      // Combine rating influence
+      score += (rating - 3);
+      
+      let sentimentEmoji = '😐';
+      if (score <= -2) sentimentEmoji = '😞';
+      else if (score === -1) sentimentEmoji = '😕';
+      else if (score === 0) sentimentEmoji = '😐';
+      else if (score === 1) sentimentEmoji = '🙂';
+      else if (score >= 2) sentimentEmoji = '😊';
+      
+      const doc = {
+        className,
+        section,
+        teacher,
+        subject,
+        rating,
+        comments,
+        anonymous,
+        sentimentEmoji,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      
+      try {
+        log('Submitting manual feedback...');
+        const docRef = await db.collection('feedbacks').add(doc);
+        log('Feedback submitted successfully with ID: ' + docRef.id, 'success');
+        
+        // Verify the document was saved
+        const savedDoc = await db.collection('feedbacks').doc(docRef.id).get();
+        log('Verified saved document: ' + JSON.stringify(savedDoc.data()), 'success');
+      } catch (error) {
+        log('Failed to submit feedback: ' + error.message, 'error');
+        if (error.code) {
+          log('Error code: ' + error.code, 'error');
+        }
+      }
+    }
+    
+    // Run connection test on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      log('Page loaded. Click buttons to test Firebase operations.');
+    });
+  </script>
+</body>
+</html>
